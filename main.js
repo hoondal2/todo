@@ -14,6 +14,55 @@
  * 4. 날짜 클릭으로 펼치기,닫기
  */
 
+
+// ========= 1. 날짜 추가하기 (중복 불가) ==========
+
+// 1-1. 날짜 추가 함수
+function addDateList(selectDate) {
+  const li = document.createElement("li");
+  li.setAttribute('class', "date");
+  li.setAttribute('id', selectDate);
+
+  const textNode = document.createTextNode(selectDate);
+  li.appendChild(textNode);
+
+  document.getElementById("date-list").appendChild(li);
+}
+
+// 1-2. 날짜 중복 검사 함수
+function checkDuplicate(selectDate) {
+  try {
+    Array.from(dates).forEach((date) => {
+      if (date.innerText === selectDate)
+        throw new Error("stop loop");
+    })
+  } catch (e) {
+    alert("이미 있어요");
+    return false;
+  }
+  return true;
+}
+
+// 1-3. 이벤트추가
+const addClickEvent = (e) => {
+  const selectDate = document.getElementById("date-select").value;
+
+  if (checkDuplicate(selectDate))
+    addDateList(selectDate);
+}
+
+
+// ========= 2. 해당 날짜에 todo 추가하기 ==========
+
+// 추가버튼 변수
+const addBtn = document.getElementById("date-add");
+
+// 추가버튼에 이벤트 추가
+addBtn.addEventListener("click", addClickEvent);
+
+
+//////////////////////////////////////////////////////////
+
 const dates = document.getElementsByClassName("date");
 
 const clickEvent = (e) => {
