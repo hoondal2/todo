@@ -15,7 +15,23 @@
  */
 
 
+/**
+ * 10/27 변경사항
+ * 1. getElement~ => 함수 밖으로 이동
+ * 2. 버튼 생성 함수 추가
+ * 3. todoContent 추가시 유효성 검사
+ * 4. todoContent 추가후 input창 초기화
+ * 5. 삭제 기능 추가
+ * 6. input창 초기화
+ * 7. 날짜 클릭시 todo 리스트 변경 (해야됨) / 클릭시 해당 클래스네임이 아니면 display:none, 해당 클래스면 block 
+ * 8. 완료 기능 추가 => 질문
+ */
+
 // ========= 1. 날짜 추가하기 (중복 불가) ==========
+
+const changeTodoList = (date) => {
+
+}
 
 // 1-1. 날짜 추가 함수
 function addDateList(selectDate) {
@@ -30,6 +46,8 @@ function addDateList(selectDate) {
   document.getElementById("date-list").appendChild(liForDate);
 }
 
+const dates = document.getElementsByClassName("date");
+
 // 1-2. 날짜 널,중복 검사 함수
 function checkDate(selectDate) {
   if (selectDate === "") {
@@ -37,6 +55,11 @@ function checkDate(selectDate) {
     return false;
   }
 
+  // if(isEmpty(selectDate)){
+  //   alert("날짜를 선택해주세요!");
+  // }
+
+  // 함수 만들기
   try {
     Array.from(dates).forEach((date) => {
       if (date.innerText === selectDate)
@@ -49,8 +72,9 @@ function checkDate(selectDate) {
   return true;
 }
 
+
 // 1-3. 이벤트 추가
-const addDateClickEvent = (e) => {
+const addDateClickEvent = () => {
   const selectDate = document.getElementById("date-select").value;
 
   if (checkDate(selectDate))
@@ -59,19 +83,20 @@ const addDateClickEvent = (e) => {
 
 // 1-4. '추가' 버튼에 이벤트 추가
 const addBtn = document.getElementById("date-add");
-addBtn.addEventListener("click", addDateClickEvent);
+addBtn.addEventListener("click", () => {
+  addDateClickEvent();
 
+});
 
 
 // ========= 2. 해당 날짜에 todo 추가하기 ==========
 
 // todo feed에 input 추가
-const dates = document.getElementsByClassName("date"); // 1-2에서도 쓰임...
 
 // 2-1. 오른쪽 헤드 이름 바꾸는 함수
 // ++추가 : '추가' 버튼에 날짜 데이터 전달
 const modHeadNameClickEvent = (e) => {
-  const date = e.srcElement.innerText;
+  const date = e.srcElement.innerText; //target.value
 
   const headName = document.querySelector(".feed-right-head");
   headName.innerText = date + " 의 TODO";
@@ -80,63 +105,77 @@ const modHeadNameClickEvent = (e) => {
   todoAddBtn.dataset.date = date;
 
   // addFirstInput(date);
+  // 클릭시 해당 날짜의 클래스만 나오도록함
 };
 
-// 2-2. 인풋에 정보 입력시 아래에 li / div / btn 3개 (완료,삭제, +수정)
-
-
-
-
-// function addFirstInput(date) {
-//   const liForTodo = document.createElement("li");
-//   liForTodo.setAttribute('class', date);
-
-//   const inputForTodo = document.createElement("input");
-//   inputForTodo.setAttribute('class', date);
-
-//   liForTodo.appendChild(inputForTodo);
-
-//   const completeBtn = document.createElement(button);
-//   const deleteBtn = document.createElement(button);
-
-
-//   document.getElementById("todo").appendChild(liForTodo);
-//   document.getElementById("todo").appendChild(completeBtn);
-//   document.getElementById("todo").appendChild(deleteBtn);
-
-// }
+// todoContent추가시 유효성 검사 / 나누기
+const validateContent = (date, content) => {
+  if (date === "") {
+    alert("날짜를 선택해주세요!");
+    return false;
+  } else if (content === "") {
+    alert("내용을 입력해주세요!");
+    return false;
+  }
+  return true;
+}
 
 // 2-2. 오른쪽 '추가' 클릭시, 인풋 value 아래에 찍힘
+
 const addTodoClickEvent = (e) => {
   const todoDate = document.getElementById("todo-add").dataset.date; // 날짜
-  const addContent = document.getElementById("todo-input").value; // 할일
+  let todoContent = document.getElementById("todo-input").value; // 할일
 
-  const liForTodo = document.createElement("li");
-  liForTodo.setAttribute('class', todoDate);
+  if (!validateContent(todoDate, todoContent)) { return; }
 
-  const textNode = document.createTextNode(addContent);
-  liForTodo.appendChild(textNode);
+  const todoEl = document.createElement("li");
+  todoEl.setAttribute('class', todoDate);
 
-  // 완료버튼 생성
-  const completeBtn = document.createElement("button")
-  completeBtn.setAttribute('class', todoDate)
-  completeBtn.setAttribute('id', todoDate + "-completeBtn")
-  completeBtn.innerText = "완료";
-  completeBtn.addEventListener("click", completeClickEvent);
+  const textEl = document.createElement("span");
+  const textNode = document.createTextNode(todoContent);
+  textEl.appendChild(textNode);
+  todoEl.appendChild(textEl);
 
-  // 삭제버튼 생성
-  const deleteBtn = document.createElement("button")
-  deleteBtn.setAttribute('class', todoDate)
-  deleteBtn.setAttribute('id', todoDate + "-deleteBtn")
-  deleteBtn.innerText = "삭제";
 
-  liForTodo.appendChild(completeBtn);
-  liForTodo.appendChild(deleteBtn);
-  document.getElementById("todo").appendChild(liForTodo);
+  const completeBtn = createBtn("completeBtn", todoDate, "완료");
+  const deleteBtn = createBtn("deleteBtn", todoDate, "삭제");
+
+  // 완료 이벤트
+  completeBtn.addEventListener("click", () => { todoComplete(textEl, completeBtn) }) // ?????
+  deleteBtn.addEventListener("click", () => {
+    if (confirm("정말 삭제하시겠어요?"))
+      todoEl.remove()
+  })
+
+  todoEl.appendChild(completeBtn);
+  todoEl.appendChild(deleteBtn);
+
+  document.getElementById("todo").appendChild(todoEl);
+
+  // 인풋창 초기화
+  document.getElementById("todo-input").value = "";
 }
+
+
+// 완료 이벤트
+// 버튼 클릭시 완료 버튼은 완료취소로 바뀌고, 빗금 생김
+// 함수형 프로그래밍
+const todoComplete = (textEl, completeBtn) => {
+  if (textEl.style.textDecorationLine === "line-through") {
+    textEl.style.textDecorationLine = '';
+    completeBtn.innerText = "완료";
+  } else {
+    textEl.style.textDecorationLine = "line-through";
+    completeBtn.innerText = "취소";
+  }
+}
+
 
 const todoAdd = document.getElementById("todo-add");
 todoAdd.addEventListener("click", addTodoClickEvent);
+// todoAdd.addEventListener("click", () => {
+//   document.getElementById("todo-input").value = null; // 인풋창 초기화 이벤트 추가
+// });
 
 
 // Array.from(dates).forEach((date) => {
@@ -152,3 +191,11 @@ todoAdd.addEventListener("click", addTodoClickEvent);
 //   const
 // }
 
+
+// 버튼 만드는 함수
+const createBtn = (btnType, date, btnName) => {
+  const newBtn = document.createElement("button");
+  newBtn.setAttribute('class', date);
+  newBtn.innerText = btnName;
+  return newBtn;
+}
