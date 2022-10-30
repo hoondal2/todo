@@ -27,23 +27,31 @@
  * 8. 완료 기능 추가 => 질문
  */
 
+
+/**
+ * 10/28 변경사항
+ * 1. 완료 이벤트 함수 통합
+ * 2. 날짜 클릭시 todo 리스트 변경 
+ * 3. 유효성 검사 함수 나누기 (해야됨)
+ * 4. 수정 기능 추가
+ */
+
+
 // ========= 1. 날짜 추가하기 (중복 불가) ==========
-
-const changeTodoList = (date) => {
-
-}
 
 // 1-1. 날짜 추가 함수
 function addDateList(selectDate) {
-  const liForDate = document.createElement("li");
-  liForDate.setAttribute('class', "date");
+  const liEl = document.createElement("li");
+  liEl.setAttribute('class', "date");
 
   const textNode = document.createTextNode(selectDate);
-  liForDate.appendChild(textNode);
+  liEl.appendChild(textNode);
 
-  liForDate.addEventListener("click", modHeadNameClickEvent);
+  liEl.addEventListener("click", modHeadNameClickEvent);
+  liEl.addEventListener("click", () => { changeTodoList(selectDate) });
 
-  document.getElementById("date-list").appendChild(liForDate);
+
+  document.getElementById("date-list").appendChild(liEl);
 }
 
 const dates = document.getElementsByClassName("date");
@@ -85,7 +93,6 @@ const addDateClickEvent = () => {
 const addBtn = document.getElementById("date-add");
 addBtn.addEventListener("click", () => {
   addDateClickEvent();
-
 });
 
 
@@ -107,6 +114,21 @@ const modHeadNameClickEvent = (e) => {
   // addFirstInput(date);
   // 클릭시 해당 날짜의 클래스만 나오도록함
 };
+
+const changeTodoList = (date) => {
+  // 부모(ul)의 아이디가 "todo"인 li 찾기
+  const todoListParentEl = document.getElementById("todo");
+  const todoListEl = todoListParentEl.children;
+
+  for (let i = 0; i < todoListEl.length; i++) {
+    if (todoListEl[i].className === date) {
+      todoListEl[i].style.display = "block";
+    } else {
+      todoListEl[i].style.display = "none";
+    }
+  }
+
+}
 
 // todoContent추가시 유효성 검사 / 나누기
 const validateContent = (date, content) => {
@@ -190,7 +212,6 @@ todoAdd.addEventListener("click", addTodoClickEvent);
 // const completeClickEvent = (e) => {
 //   const
 // }
-
 
 // 버튼 만드는 함수
 const createBtn = (btnType, date, btnName) => {
