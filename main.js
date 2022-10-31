@@ -6,6 +6,7 @@
 5. css 하고 싶다 -> display flex grid
 */
 
+
 /**
  * 구현할 기능 목록
  * 1. 날짜선택으로 todo 추가 가능 (중복 불가)
@@ -23,21 +24,26 @@
  * 4. todoContent 추가후 input창 초기화
  * 5. 삭제 기능 추가
  * 6. input창 초기화
- * 7. 날짜 클릭시 todo 리스트 변경 (해야됨) / 클릭시 해당 클래스네임이 아니면 display:none, 해당 클래스면 block 
+ * 7. 날짜 클릭시 todo 리스트 변경 / 클릭시 해당 클래스네임이 아니면 display:none, 해당 클래스면 block 
  * 8. 완료 기능 추가 => 질문
  */
 
 
 /**
- * 10/28 변경사항
+ * 10/31 변경사항
  * 1. 완료 이벤트 함수 통합
  * 2. 날짜 클릭시 todo 리스트 변경 
- * 3. 유효성 검사 함수 나누기 (해야됨)
+ * 3. // 유효성 검사 함수 나누기 (해야됨)
  * 4. 수정 기능 추가
+ * 5. // 체크박스로 변경 (해야됨)
+ * 6. 엔터키 활성화 
+ * 7. 날짜 삭제 (해야됨) -> 반만 삭제됨 .... 
+ * 8. 날짜 정렬 (해야됨) -> 
  */
 
 
 // ========= 1. 날짜 추가하기 (중복 불가) ==========
+const dates = document.getElementsByClassName("date");
 
 // 1-1. 날짜 추가 함수
 function addDateList(selectDate) {
@@ -47,14 +53,39 @@ function addDateList(selectDate) {
   const textNode = document.createTextNode(selectDate);
   liEl.appendChild(textNode);
 
-  liEl.addEventListener("click", modHeadNameClickEvent);
-  liEl.addEventListener("click", () => { changeTodoList(selectDate) });
+  const deleteDateBtn = createBtn(selectDate, "삭제")
+  deleteDateBtn.addEventListener("click", () => {
+    // 1. 부모 li 삭제
+    // 2. 클래스가 부모li innerText와 같은 li 삭제
+    console.log(deleteDateBtn.parentElement) // 삭제
+    deleteDateBtn.parentElement.remove();
 
+    const parentTodoEl = document.getElementById("todo");
+    const todoEl = parentTodoEl.children
+    console.log(todoEl.length);
+    for (let i = 0; i < todoEl.length; i++) {
+      if (todoEl[i].className === selectDate) {
+        console.log(selectDate);
+        console.log(todoEl[i].className);
+        todoEl[i].remove();
+      }
+    }
+  })
+
+  liEl.appendChild(deleteDateBtn);
+  liEl.addEventListener("click", () => { headNameClickEvent(selectDate) });
 
   document.getElementById("date-list").appendChild(liEl);
+  //document.getElementById("date-list").insertBefore(앞,뒤);
+  // console.log(document.getElementById("date-list").children);
+
+  // document.getElementById("date-list").children.sort;
 }
 
-const dates = document.getElementsByClassName("date");
+// ++날짜 정렬 함수 
+// insertBefore() 사용 => 새로운 노드를 특정 자식 노드 바로 앞에 추가
+// 
+
 
 // 1-2. 날짜 널,중복 검사 함수
 function checkDate(selectDate) {
@@ -95,6 +126,9 @@ addBtn.addEventListener("click", () => {
   addDateClickEvent();
 });
 
+// 1-5 날짜 리스트 정렬
+
+
 
 // ========= 2. 해당 날짜에 todo 추가하기 ==========
 
@@ -102,9 +136,8 @@ addBtn.addEventListener("click", () => {
 
 // 2-1. 오른쪽 헤드 이름 바꾸는 함수
 // ++추가 : '추가' 버튼에 날짜 데이터 전달
-const modHeadNameClickEvent = (e) => {
-  const date = e.srcElement.innerText; //target.value
-
+const headNameClickEvent = (date) => {
+  //const date = e.srcElement.innerText; //target.value
   const headName = document.querySelector(".feed-right-head");
   headName.innerText = date + " 의 TODO";
 
@@ -113,6 +146,7 @@ const modHeadNameClickEvent = (e) => {
 
   // addFirstInput(date);
   // 클릭시 해당 날짜의 클래스만 나오도록함
+  changeTodoList(date);
 };
 
 const changeTodoList = (date) => {
@@ -143,10 +177,9 @@ const validateContent = (date, content) => {
 }
 
 // 2-2. 오른쪽 '추가' 클릭시, 인풋 value 아래에 찍힘
-
 const addTodoClickEvent = (e) => {
   const todoDate = document.getElementById("todo-add").dataset.date; // 날짜
-  let todoContent = document.getElementById("todo-input").value; // 할일
+  const todoContent = document.getElementById("todo-input").value; // 할일
 
   if (!validateContent(todoDate, todoContent)) { return; }
 
@@ -159,17 +192,21 @@ const addTodoClickEvent = (e) => {
   todoEl.appendChild(textEl);
 
 
-  const completeBtn = createBtn("completeBtn", todoDate, "완료");
-  const deleteBtn = createBtn("deleteBtn", todoDate, "삭제");
+  const completeBtn = createBtn(todoDate, "완료");
+  const deleteBtn = createBtn(todoDate, "삭제");
+  const modifyBtn = createBtn(todoDate, "수정");
 
-  // 완료 이벤트
+
+  // 버튼 이벤트 추가
   completeBtn.addEventListener("click", () => { todoComplete(textEl, completeBtn) }) // ?????
   deleteBtn.addEventListener("click", () => {
     if (confirm("정말 삭제하시겠어요?"))
       todoEl.remove()
   })
+  modifyBtn.addEventListener("click", () => { todoModify(textEl, modifyBtn, todoContent) })
 
   todoEl.appendChild(completeBtn);
+  todoEl.appendChild(modifyBtn);
   todoEl.appendChild(deleteBtn);
 
   document.getElementById("todo").appendChild(todoEl);
@@ -178,6 +215,28 @@ const addTodoClickEvent = (e) => {
   document.getElementById("todo-input").value = "";
 }
 
+// 수정 이벤트
+const todoModify = (textEl, modifyBtn, todoContent) => {
+  if (modifyBtn.innerText === "수정") {
+    textEl.innerHTML = '<input id = "modify-input" value="' + textEl.innerText + '">';
+    modifyBtn.innerText = "수정완료";
+  } else {
+    // input 삭제
+    // innerText에 input value 넣기
+    // 입력안하면 리셋
+    modValue = document.getElementById("modify-input").value;
+    if (modValue === '') {
+      alert("내용을 입력하세요")
+      textEl.innerHTML = '';
+      textEl.innerText = todoContent;
+      modifyBtn.innerText = "수정";
+      return;
+    }
+    textEl.innerHTML = '';
+    textEl.innerText = modValue;
+    modifyBtn.innerText = "수정";
+  }
+}
 
 // 완료 이벤트
 // 버튼 클릭시 완료 버튼은 완료취소로 바뀌고, 빗금 생김
@@ -192,29 +251,20 @@ const todoComplete = (textEl, completeBtn) => {
   }
 }
 
-
+// todo-list 이벤트 추가
+// ++ 엔터키 활성화
 const todoAdd = document.getElementById("todo-add");
 todoAdd.addEventListener("click", addTodoClickEvent);
-// todoAdd.addEventListener("click", () => {
-//   document.getElementById("todo-input").value = null; // 인풋창 초기화 이벤트 추가
-// });
 
-
-// Array.from(dates).forEach((date) => {
-//   date.addEventListener("click", addTodoClickEvent);
-// });
-
-// ========= 3. 해당 날짜의 input만 보이게 하기 ========
-
-// 3-1. 날짜 클릭시 (해당날짜) -> '해당날짜'
-
-// ========= 4. 완료 - 빗금 =========--
-// const completeClickEvent = (e) => {
-//   const
-// }
+const todoContent = document.getElementById("todo-input");
+todoContent.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    addTodoClickEvent();
+  }
+});
 
 // 버튼 만드는 함수
-const createBtn = (btnType, date, btnName) => {
+const createBtn = (date, btnName) => {
   const newBtn = document.createElement("button");
   newBtn.setAttribute('class', date);
   newBtn.innerText = btnName;
